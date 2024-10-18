@@ -1,10 +1,13 @@
 import styles from 'data-text:~contents/style.scss';
 import type { PlasmoCSConfig, PlasmoCSUIJSXContainer, PlasmoRender } from 'plasmo';
+import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import ConfigProvider from '~components/ConfigProvider';
 import SonaBookmark from '~components/SonaBookmark';
 
-export const config: PlasmoCSConfig = { matches: [ '<all_urls>' ] };
+export const config: PlasmoCSConfig = {
+  matches: [ '<all_urls>' ],
+};
 
 export const getRootContainer = () => {
   const rootContainer = document.createElement('sona-bookmark');
@@ -18,6 +21,11 @@ export const getRootContainer = () => {
 
 export const render: PlasmoRender<PlasmoCSUIJSXContainer> = async ({ createRootContainer }) => {
   const rootContainer = await createRootContainer();
-  const root = createRoot(rootContainer);
-  root.render(<ConfigProvider><SonaBookmark /></ConfigProvider>);
+  createRoot(rootContainer).render(
+    <StrictMode>
+      <ConfigProvider>
+        <SonaBookmark />
+      </ConfigProvider>
+    </StrictMode>,
+  );
 };

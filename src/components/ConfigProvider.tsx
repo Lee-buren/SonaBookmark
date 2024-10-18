@@ -1,19 +1,6 @@
 import { useStorage } from '@plasmohq/storage/dist/hook';
-import { createContext, type Dispatch, type ReactNode, type SetStateAction } from 'react';
-
-export interface Config {
-  width: number;
-  fontSize: number;
-  triggerWidth: number;
-  bookmarkHeight: number;
-  isAffixed: boolean;
-  expandId: string;
-  expandIds: string[];
-  target: '_self' | '_blank';
-  duration: number;
-  mode: 'dark' | 'light';
-  position: 'left' | 'right';
-}
+import type { Dispatch, ReactNode, SetStateAction } from 'react';
+import { createContext } from 'react';
 
 export const defaultConfig: Config = {
   width: 140,
@@ -39,13 +26,13 @@ export const ConfigContext = createContext<Context>({
   setConfig: (config: Config) => config,
 });
 
-interface Props {
-  readonly children: ReactNode;
-}
-
-const ConfigProvider = ({ children }: Props) => {
+const ConfigProvider = ({ children }: { readonly children: ReactNode; }) => {
   const [ config, setConfig ] = useStorage('config', defaultConfig);
-  return <ConfigContext.Provider value={ { config, setConfig } }>{ children }</ConfigContext.Provider>;
+  return (
+    <ConfigContext.Provider value={ { config, setConfig } }>
+      { children }
+    </ConfigContext.Provider>
+  );
 };
 
 export default ConfigProvider;

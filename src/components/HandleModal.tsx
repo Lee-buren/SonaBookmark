@@ -1,65 +1,50 @@
 import { sendToBackground } from '@plasmohq/messaging';
-import type { ChangeEvent, Dispatch, SetStateAction } from 'react';
-import { useEffect, useState } from 'react';
-import { type BookmarkTreeNode, HandleType } from '~components/BookmarkTree';
+import type { ChangeEvent } from 'react';
+import { memo, useState } from 'react';
 import Modal from '~components/Modal';
 
-export interface Form {
-  type: 'directory' | 'bookmark';
-  parentId: string;
-  parentTitle: string;
-  id: string;
-  title: string;
-  url: string;
-}
-
-enum BookmarkTitle {
-  add = '新增', edit = '编辑', delete = '删除'
+interface HandleFormStatus {
+  url: {
+    status: 'normal' | 'error',
+    text: string
+  };
 }
 
 interface Props {
   top?: number;
   open: boolean;
-  setOpen: Dispatch<SetStateAction<boolean>>;
+  setOpen: Setter<boolean>;
   type: HandleType;
-  formData: Form;
-  setTreeData: Dispatch<SetStateAction<BookmarkTreeNode[]>>;
+  formData: HandleForm;
+  setFormData: Setter<HandleForm>;
+  setTreeData: Setter<BookmarkTreeNode[]>;
 }
 
-const HandleModal = ({ top, open, setOpen, type, formData, setTreeData }: Props) => {
-  const [ form, setForm ] = useState(formData);
-
-  useEffect(() => {
-    setForm(formData);
-  }, [ formData ]);
+const modalTitles = { add: '新增', edit: '编辑', delete: '删除' };
+const initialForm: HandleForm = { type: 'directory', parentId: '', parentTitle: '', id: '', title: '', url: '' };
+const HandleModal = ({ top, open, setOpen, type, formData = initialForm, setFormData, setTreeData }: Props) => {
+  const [ formStatus, setFormStatus ] = useState<HandleFormStatus>({
+    url: { status: 'normal', text: '' },
+  });
 
   const formChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     if (name === 'type') {
-      // 切换类型时，清空表单
-      setUrlIsEmpty(false);
-      setUrlError('');
-      setForm({ ...form, type: value as 'directory' | 'bookmark', title: '', url: '' });
-      return;
-    } else if (name === 'url') {
-      setUrlIsEmpty(false);
-      setUrlError('');
+      // 改变 type值 时，清空表单
+      setFormStatus({ url: { status: 'normal', text: '' } });
+      setFormData({ ...formData, [name]: value as BookmarkType, title: '', url: '' });
+    } else {
+      if (name === 'url') setFormStatus({ url: { status: 'normal', text: '' } });
+      setFormData({ ...formData, [name]: value });
     }
-    setForm({ ...form, [name]: value });
   };
 
-  const [ urlIsEmpty, setUrlIsEmpty ] = useState(false);
-  const [ urlError, setUrlError ] = useState('');
-
   const onSave = async () => {
-    setUrlIsEmpty(false);
-    setUrlError('');
+    setFormStatus({ url: { status: 'normal', text: '' } });
 
-    const { type: formType, parentId, id, title, url } = form;
-    if (type !== HandleType.DELETE && formType === 'bookmark' && url === '') {
-      setUrlIsEmpty(true);
-      setUrlError('不能为空');
-      return;
+    const { type: formType, parentId, id, title, url } = formData;
+    if (type !== 'delete' && formType === 'bookmark' && url === '') {
+      return setFormStatus({ url: { status: 'error', text: '不能为空' } });
     }
 
     const { bookmarks, error } = await sendToBackground({
@@ -67,9 +52,8 @@ const HandleModal = ({ top, open, setOpen, type, formData, setTreeData }: Props)
       body: { action: type, data: { parentId, id, title, url } },
     });
     if (error) {
-      setUrlIsEmpty(true);
-      setUrlError(error.includes('Invalid URL') ? '无效网址' : error);
-      return;
+      const text = error.includes('Invalid URL') ? '无效网址' : error;
+      return setFormStatus({ url: { status: 'error', text } });
     }
 
     setTreeData(bookmarks[0].children);
@@ -77,34 +61,31 @@ const HandleModal = ({ top, open, setOpen, type, formData, setTreeData }: Props)
   };
 
   const onCancel = () => setOpen(false);
-
   return (
     <Modal
       top={ top }
-      title={ BookmarkTitle[type] }
+      title={ modalTitles[type] }
       open={ open }
-      saveText={ type === HandleType.DELETE ? '确认' : '保存' }
+      saveText={ type === 'delete' ? '确认' : '保存' }
       onSave={ onSave }
       onCancel={ onCancel }
       formItems={ [
-        type === HandleType.ADD && (
+        type === 'add' && (
           <>
             <span>上级目录:</span>
-            <input value={ form.parentTitle } disabled />
+            <input value={ formData.parentTitle } disabled />
           </>
         ),
-        type === HandleType.ADD && (
+        type === 'add' && (
           <>
             <span>类型:</span>
             <div className='sona-bookmark-radio-group'>
               <label>
-                <input
-                  type='radio'
+                <input type='radio'
                   name='type'
                   value='directory'
-                  checked={ form.type === 'directory' }
-                  onChange={ formChange }
-                />
+                  checked={ formData.type === 'directory' }
+                  onChange={ formChange } />
                 <span>目录</span>
               </label>
               <label>
@@ -112,7 +93,7 @@ const HandleModal = ({ top, open, setOpen, type, formData, setTreeData }: Props)
                   type='radio'
                   name='type'
                   value='bookmark'
-                  checked={ form.type === 'bookmark' }
+                  checked={ formData.type === 'bookmark' }
                   onChange={ formChange }
                 />
                 <span>书签</span>
@@ -120,31 +101,31 @@ const HandleModal = ({ top, open, setOpen, type, formData, setTreeData }: Props)
             </div>
           </>
         ),
-        type !== HandleType.DELETE && (
+        type !== 'delete' && (
           <>
             <span>书签名称:</span>
-            <input name='title' value={ form.title } onChange={ formChange } />
+            <input name='title' value={ formData.title } onChange={ formChange } />
           </>
         ),
-        type !== HandleType.DELETE && form.type === 'bookmark' && (
+        type !== 'delete' && formData.type === 'bookmark' && (
           <>
             <span>书签网址:</span>
-            { urlError && <span style={ { color: 'red', marginLeft: 4 } }>{ urlError }</span> }
+            <span style={ { color: 'red', marginLeft: 4 } }>{ formStatus.url.text }</span>
             <input
-              className={ urlIsEmpty ? 'sona-bookmark-input-empty' : '' }
+              className={ formStatus.url.status === 'error' ? 'sona-bookmark-input-empty' : '' }
               name='url'
-              value={ form.url }
+              value={ formData.url }
               onChange={ formChange }
             />
           </>
         ),
-        type === HandleType.DELETE && (
+        type === 'delete' && (
           <>
-            <span>{ form.type === 'directory' ? '将删除所有子目录和书签' : '将删除书签' }</span>
-            <p className='line-clamp-1'
-              style={ { height: '20px', lineHeight: '20px', fontWeight: 'bolder' } }>
-              { form.title }
-            </p>
+            <span>{ formData.type === 'directory' ? '将删除所有子目录和书签' : '将删除书签' }</span>
+            <b className='line-clamp-1'
+              style={ { height: '20px', lineHeight: '20px' } }>
+              { formData.title }
+            </b>
           </>
         ),
       ] }
@@ -152,4 +133,4 @@ const HandleModal = ({ top, open, setOpen, type, formData, setTreeData }: Props)
   );
 };
 
-export default HandleModal;
+export default memo(HandleModal);

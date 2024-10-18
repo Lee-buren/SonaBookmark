@@ -188,14 +188,12 @@ svg {
 .sona-bookmark-modal {
   position: absolute;
   top: 0;
-  left: 0;
   width: 180px;
   font-size: 12px;
   background-color: var(--sona-bookmark-bg);
   border-radius: 4px;
   box-shadow: 2px 2px 2px var(--sona-bookmark-shadow);
   border-left: 1px solid var(--sona-bookmark-hover);
-  opacity: 0;
   overflow: hidden;
   transition-property: transform, opacity, width, height;
   transition-duration: inherit;

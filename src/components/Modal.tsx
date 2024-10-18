@@ -20,12 +20,11 @@ const Modal = (props: Props) => {
   const [ openStyle, setOpenStyle ] = useState<CSSProperties>();
   useEffect(() => {
     if (open) {
+      const left = `${ config.position === 'right' ? -180 : config.width }px`;
       // height = header 28px, footer 28px, content pt 8px, formitem 44px
       const height = 64 + 44 * formItems.filter(Boolean).length;
       const maxTop = innerHeight - height;
-      const Y = maxTop < top ? maxTop : top;
-      const X = config.position === 'right' ? '-180' : config.width;
-      setOpenStyle({ height, opacity: 1, transform: `translate(${ X }px, ${ Y }px)` });
+      setOpenStyle({ left, height, opacity: 1, transform: `translateY(${ maxTop < top ? maxTop : top }px)` });
     } else {
       setOpenStyle({ ...openStyle, height: 0, opacity: 0 });
     }

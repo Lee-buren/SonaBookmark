@@ -1,7 +1,7 @@
 import { sendToBackground } from '@plasmohq/messaging';
 import { useDrag, useDrop } from 'ahooks';
 import type { CSSProperties, MouseEvent } from 'react';
-import { forwardRef, memo, useContext, useRef, useState } from 'react';
+import { forwardRef, useContext, useRef, useState } from 'react';
 import Add from 'react:../../assets/Add.svg';
 import Delete from 'react:../../assets/Delete.svg';
 import Edit from 'react:../../assets/Edit.svg';
@@ -10,22 +10,12 @@ import { ConfigContext } from '~components/ConfigProvider';
 import { TreeContext } from '~components/TreeProvider';
 import { faviconURL, getElement } from '~utils/tools';
 
-export type BookmarkTreeNode = chrome.bookmarks.BookmarkTreeNode;
-
-export enum HandleType {
-  ADD = 'add', EDIT = 'edit', DELETE = 'delete'
-}
-
-interface ContentProps {
-  tree: BookmarkTreeNode;
-}
-
 const ROOT_IDS = [ '0', '1', '2', '3' ]; // 根节点的 id 列表, 这几个节点不被允许修改和删除
 let srcEl: HTMLElement; // 被拖拽的元素
 let clientY = 0; // 鼠标的Y坐标, 用于拖拽事件的节流判断
 let insert: 'top' | 'bottom' = 'bottom'; // 插入元素的位置
 let prevTime = Date.now(); // 当前时间,用于展开事件的节流判断
-const BookmarkList = ({ tree }: ContentProps) => {
+const BookmarkList = ({ tree }: { tree: BookmarkTreeNode }) => {
   const { dragId, setDragId, setTreeData, onAdd, onEdit, onDelete } = useContext(TreeContext);
   const { config, setConfig } = useContext(ConfigContext);
 
@@ -148,11 +138,11 @@ const BookmarkList = ({ tree }: ContentProps) => {
         onClick={ contentClick }>
         <div>
           { tree.url ?
-            (<img style={ { width: config.fontSize, height: config.fontSize } }
+            (<img style={ { width: config.fontSize, height: config.fontSize, display: 'block' } }
               src={ faviconURL(tree.url) }
               draggable={ false }
               alt='' />) :
-            (<Folder fill={ isExpand ? 'none' : 'currentColor' }
+            (<Folder fill={ isExpand || tree.children.length === 0 ? 'none' : 'currentColor' }
               width={ config.fontSize }
               height={ config.fontSize } />) }
         </div>
@@ -206,17 +196,14 @@ interface Props {
 const BookmarkTree = forwardRef<HTMLUListElement, Props>(({ pid = '0', treeData = [] }, ref) => {
   const { config } = useContext(ConfigContext);
   const belongRoot = pid === '0';
-  const [ className ] = useState(() => belongRoot ? 'sona-bookmark-tree' : 'sona-bookmark-ul');
-  const [ style ] = useState<CSSProperties>(() => ({
-    display: belongRoot || config.expandIds.includes(pid) ? '' : 'none',
-  }));
+  const [ style ] = useState<CSSProperties>({ display: belongRoot || config.expandIds.includes(pid) ? '' : 'none' });
   return (
     <ul ref={ ref }
-      style={ { ...style, transitionDuration: belongRoot ? '' : `${ config.duration }ms` } }
-      className={ className }>
+      className={ `sona-bookmark-${ belongRoot ? 'tree' : 'ul' }` }
+      style={ { ...style, transitionDuration: belongRoot ? '' : `${ config.duration }ms` } }>
       { treeData.map((tree) => (<BookmarkList key={ tree.id } tree={ tree } />)) }
     </ul>
   );
 });
 
-export default memo(BookmarkTree);
+export default BookmarkTree;

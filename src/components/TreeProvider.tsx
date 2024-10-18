@@ -1,5 +1,5 @@
-import { createContext, type Dispatch, type MouseEvent, type ReactNode, type SetStateAction } from 'react';
-import type { BookmarkTreeNode } from '~components/BookmarkTree';
+import type { Dispatch, MouseEvent, ReactNode, SetStateAction } from 'react';
+import { createContext } from 'react';
 
 type HandleFn = (e: MouseEvent, bookmark: BookmarkTreeNode) => void;
 
@@ -26,9 +26,11 @@ interface Props extends Context {
 }
 
 const TreeProvider = ({ dragId, setDragId, setTreeData, onAdd, onEdit, onDelete, children }: Props) => {
-  return <TreeContext.Provider value={ { dragId, setDragId, setTreeData, onAdd, onEdit, onDelete } }>
-    { children }
-  </TreeContext.Provider>;
+  return (
+    <TreeContext.Provider value={ { dragId, setDragId, setTreeData, onAdd, onEdit, onDelete } }>
+      { children }
+    </TreeContext.Provider>
+  );
 };
 
 export default TreeProvider;

@@ -1,70 +1,53 @@
-import { type ChangeEvent, type Dispatch, type SetStateAction, useContext, useEffect, useState } from 'react';
+import type { ChangeEvent } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { ConfigContext, defaultConfig } from '~components/ConfigProvider';
 import Modal from '~components/Modal';
 
 // 默认表单数据, 重置时使用
-const initialConfig = {
-  width: defaultConfig.width,
-  fontSize: defaultConfig.fontSize,
+const initialForm = {
   triggerWidth: defaultConfig.triggerWidth,
+  width: defaultConfig.width,
   bookmarkHeight: defaultConfig.bookmarkHeight,
-  target: defaultConfig.target,
+  fontSize: defaultConfig.fontSize,
   duration: defaultConfig.duration,
+  target: defaultConfig.target,
 };
-
-interface Form {
-  width: number;
-  fontSize: number;
-  triggerWidth: number;
-  bookmarkHeight: number;
-  target: '_self' | '_blank';
-  duration: number;
-}
 
 interface Props {
   open: boolean;
-  setOpen: Dispatch<SetStateAction<boolean>>;
+  setOpen: Setter<boolean>;
 }
 
 const SettingModal = ({ open, setOpen }: Props) => {
   const { config, setConfig } = useContext(ConfigContext);
-  const [ form, setForm ] = useState<Form>(initialConfig);
+  const [ form, setForm ] = useState<SettingForm>(initialForm);
   useEffect(() => {
-    const { width, fontSize, triggerWidth, bookmarkHeight, target, duration } = config;
-    setForm({ width, fontSize, triggerWidth, bookmarkHeight, target, duration });
+    const { triggerWidth, width, bookmarkHeight, fontSize, duration, target } = config;
+    setForm({ triggerWidth, width, bookmarkHeight, fontSize, duration, target });
   }, [ config ]);
-  // 表单数据验证规则
+
+  const formChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: name === 'target' ? value : +value });
+  };
+
   const formRules = {
     triggerWidth: { min: 1, max: 64 },
     width: { min: 100, max: 480 },
-    fontSize: { min: 12, max: 24 },
     bookmarkHeight: { min: 12, max: 30 },
+    fontSize: { min: 12, max: 24 },
     duration: { min: 0, max: 1000 },
-  };
-  const formChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    if (name === 'target') {
-      setForm({ ...form, [name]: value as '_self' | '_blank' });
-      return;
-    }
-    setForm({ ...form, [name]: parseInt(value) || 0 });
   };
   const formBlur = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const { min, max } = formRules[name];
-    if (value === '' || isNaN(parseInt(value)) || value < min) {
-      // 输入值不合法, 置为最小值
-      setForm({ ...form, [name]: min });
-    } else if (value > max) {
-      // 输入值超过最大值, 置为最大值
-      setForm({ ...form, [name]: max });
-    } else {
-      setForm({ ...form, [name]: parseInt(value) });
-    }
+    value < min && setForm({ ...form, [name]: min });
+    value > max && setForm({ ...form, [name]: max });
   };
+
   const onSave = () => setConfig({ ...config, ...form });
   const onCancel = () => setOpen(false);
-  const onReset = () => setForm(initialConfig);
+  const onReset = () => setForm(initialForm);
   return (
     <Modal title='设置'
       open={ open }
@@ -73,32 +56,54 @@ const SettingModal = ({ open, setOpen }: Props) => {
       extraButtons={ [ <button onClick={ onReset }>重置</button> ] }
       formItems={ [
         <>
-          <span>触发宽度(px)({ formRules.triggerWidth.min }-{ formRules.triggerWidth.max }):</span>
+          <span>触发宽度({ formRules.triggerWidth.min }-{ formRules.triggerWidth.max })(px):</span>
           <input type='number'
             name='triggerWidth'
+            min={ formRules.triggerWidth.min }
+            max={ formRules.triggerWidth.max }
             value={ form.triggerWidth }
             onChange={ formChange }
             onBlur={ formBlur } />
         </>,
         <>
-          <span>侧边宽度(px)({ formRules.width.min }-{ formRules.width.max }):</span>
-          <input type='number' name='width' value={ form.width } onChange={ formChange } onBlur={ formBlur } />
+          <span>侧边宽度({ formRules.width.min }-{ formRules.width.max })(px):</span>
+          <input type='number'
+            name='width'
+            min={ formRules.width.min }
+            max={ formRules.width.max }
+            value={ form.width }
+            onChange={ formChange }
+            onBlur={ formBlur } />
         </>,
         <>
-          <span>字体大小(px)({ formRules.fontSize.min }-{ formRules.fontSize.max }):</span>
-          <input type='number' name='fontSize' value={ form.fontSize } onChange={ formChange } onBlur={ formBlur } />
-        </>,
-        <>
-          <span>书签高度(px)({ formRules.bookmarkHeight.min }-{ formRules.bookmarkHeight.max }):</span>
+          <span>书签高度({ formRules.bookmarkHeight.min }-{ formRules.bookmarkHeight.max })(px):</span>
           <input type='number'
             name='bookmarkHeight'
+            min={ formRules.bookmarkHeight.min }
+            max={ formRules.bookmarkHeight.max }
             value={ form.bookmarkHeight }
             onChange={ formChange }
             onBlur={ formBlur } />
         </>,
         <>
-          <span>动画过渡时间(ms)({ formRules.duration.min }-{ formRules.duration.max }):</span>
-          <input type='number' name='duration' value={ form.duration } onChange={ formChange } onBlur={ formBlur } />
+          <span>字体大小({ formRules.fontSize.min }-{ formRules.fontSize.max })(px):</span>
+          <input type='number'
+            name='fontSize'
+            min={ formRules.fontSize.min }
+            max={ formRules.fontSize.max }
+            value={ form.fontSize }
+            onChange={ formChange }
+            onBlur={ formBlur } />
+        </>,
+        <>
+          <span>动画过渡时间({ formRules.duration.min }-{ formRules.duration.max })(ms):</span>
+          <input type='number'
+            name='duration'
+            min={ formRules.duration.min }
+            max={ formRules.duration.max }
+            value={ form.duration }
+            onChange={ formChange }
+            onBlur={ formBlur } />
         </>,
         <>
           <span>书签打开方式:</span>
