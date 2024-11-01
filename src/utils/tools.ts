@@ -3,13 +3,13 @@
  * @param {string} url 书签 URL
  * @returns {string} 书签的 favicon URL
  * */
-export function faviconURL(url: string = ''): string {
-  if (typeof url !== 'string' || !chrome.runtime) return '';
+export function getFavicon(url: string = ''): string {
+  if (typeof url !== 'string') return '';
 
   try {
-    const Url = new URL(chrome.runtime.getURL('/_favicon/'));
-    Url.searchParams.set('pageUrl', url);
-    return Url.toString();
+    const faviconUrl = new URL(chrome.runtime.getURL('/_favicon/'));
+    faviconUrl.searchParams.set('pageUrl', url);
+    return faviconUrl.toString();
   } catch (error) {
     console.error(error);
     return '';
@@ -20,9 +20,10 @@ export function faviconURL(url: string = ''): string {
  * 获取目标元素
  * @param {HTMLElement} srcEl 源元素
  * @param {string} className 类名
- * @returns {HTMLElement} 目标元素
+ * @returns {HTMLElement | null} 目标元素
  * */
-export function getElement(srcEl: HTMLElement, className: string): HTMLElement {
+export function getElementBubble(srcEl: HTMLElement, className: string): HTMLElement | null {
+  // 向上寻找目标元素
   while (srcEl) {
     if (srcEl.classList.contains(className)) return srcEl;
     srcEl = srcEl.parentElement;

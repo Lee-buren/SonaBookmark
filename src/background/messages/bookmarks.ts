@@ -1,8 +1,8 @@
 import type { PlasmoMessaging } from '@plasmohq/messaging';
 
-const Bookmarks: PlasmoMessaging.MessageHandler = async (req, res) => {
-  if (req.body) {
-    const { action, data: { id, parentId, title, url, index } } = req.body;
+const Bookmarks: PlasmoMessaging.MessageHandler = async ({ body }, { send }) => {
+  if (body) {
+    const { action, data: { id, parentId, title, url, index } } = body;
     try {
       if (action === 'add') {
         await chrome.bookmarks.create({ parentId, title, url });
@@ -13,16 +13,16 @@ const Bookmarks: PlasmoMessaging.MessageHandler = async (req, res) => {
       } else if (action === 'move') {
         await chrome.bookmarks.move(id, { parentId, index });
       }
-    } catch (e) {
-      res.send({ error: e.message });
+    } catch ({ message }) {
+      send({ error: message });
     }
   }
 
   try {
     const bookmarks = await chrome.bookmarks.getTree();
-    res.send({ bookmarks });
-  } catch (e) {
-    res.send({ error: e.message });
+    send({ bookmarks });
+  } catch ({ message }) {
+    send({ error: message });
   }
 };
 
