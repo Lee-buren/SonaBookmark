@@ -37,6 +37,9 @@ svg {
   --sona-shadow: #3c3c3c40;
   --sona-actions-bg: #c4ab78;
   --sona-error-text: #8b0000;
+  --sona-trigger: #845ec2;
+  --sona-trigger-bg: #000000;
+  --sona-trigger-text: #ffffff;
 }
 
 .dark {
@@ -47,6 +50,9 @@ svg {
   --sona-shadow: #0000007f;
   --sona-actions-bg: #767676;
   --sona-error-text: #ff4500;
+  --sona-trigger: #b39cd0;
+  --sona-trigger-bg: #ffffff;
+  --sona-trigger-text: #000000;
 }
 
 .line-clamp-1 {
@@ -190,6 +196,29 @@ svg {
   }
 }
 
+.sona-modal {
+  font-size: 14px;
+  position: absolute;
+  z-index: 9999;
+  top: 0;
+  width: 200px;
+  transition-duration: var(--duration);
+  transition-property: opacity;
+  border-radius: 4px;
+  background-color: var(--sona-bg);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 28px;
+    padding: 0 8px;
+    user-select: none;
+    border-radius: 4px;
+    background-color: var(--sona-header-bg);
+  }
+}
+
 .sona-form {
   overflow: auto;
   padding: 8px 8px 0;
@@ -265,24 +294,43 @@ svg {
   }
 }
 
-.sona-modal {
-  position: absolute;
-  top: 0;
-  width: 200px;
-  transition-duration: var(--duration);
-  transition-property: opacity;
-  border-radius: 4px;
-  background-color: var(--sona-bg);
+.sona-trigger-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 2px;
 
-  &__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 28px;
-    padding: 0 8px;
-    user-select: none;
-    border-radius: 4px;
-    background-color: var(--sona-header-bg);
+  input {
+    flex: 1;
+  }
+}
+
+.sona-trigger-area {
+  position: absolute;
+  z-index: 9;
+  top: 0;
+  bottom: 0;
+  transition-duration: var(--duration);
+  transition-property: transform, opacity, width;
+  border: 2px solid var(--sona-trigger);
+  background-color: var(--sona-shadow);
+
+  &::before {
+    position: absolute;
+    content: '';
+    background: repeating-linear-gradient(-45deg, var(--sona-trigger) 0 1px, transparent 0 7px);
+    inset: 0;
+  }
+
+  &_text {
+    font-size: 12px;
+    position: absolute;
+    top: 50%;
+    padding: 4px;
+    content: '触发区域';
+    transform: translateY(-50%);
+    color: var(--sona-trigger-text);
+    background-color: var(--sona-trigger-bg);
   }
 }
 

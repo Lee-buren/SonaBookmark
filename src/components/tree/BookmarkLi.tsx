@@ -22,64 +22,64 @@ let srcEl: HTMLElement; // 被拖拽的元素
 let insert: 'top' | 'bottom' = 'bottom'; // 插入元素的位置
 let clientY = 0; // 鼠标的Y坐标, 用于拖拽事件的节流判断
 const BookmarkLi: FC<IProps> = ({ tree }) => {
-  const { config, setConfig } = useContext(ConfigContext);
-  const { dragId, setDragId, setTree, onAdd, onEdit, onDelete } = useContext(TreeContext);
+  const { config } = useContext(ConfigContext);
+  const { dragId, expandIds, setDragId, setExpandIds, setTree, onAdd, onEdit, onDelete } = useContext(TreeContext);
 
   const dragRef = useRef<HTMLLIElement>(null);
+  const ulRef = useRef<HTMLUListElement>(null);
 
   const isRoot = useMemo(() => ROOT_IDS.includes(tree.id), []);
-  const isExpanded = useMemo(() => config.expandIds.includes(tree.id), [ config.expandIds ]);
+  const isExpanded = useMemo(() => expandIds.includes(tree.id), [ expandIds ]);
+  const iconSize = useMemo(() => ({ width: config.fontSize, height: config.fontSize }), [ config.fontSize ]);
 
-  const bookmarkClick = (e: MouseEvent, element?: HTMLElement) => {
+  const bookmarkClick = () => {
     if (tree.url) return window.open(tree.url, config.target);
 
     // 节流, 同一个书签在动画执行完毕前不处理
     const nowTime = performance.now();
-    if (nowTime - prevTime < +config.duration && expandId === tree.id) return;
+    if (nowTime - prevTime < config.duration && expandId === tree.id) return;
     prevTime = nowTime;
 
-    let target = e.target as HTMLElement;
-    target = element || getElementBubble(target, 'sona-bookmark__item');
-    const ulEl = target.nextElementSibling as HTMLElement;
-    const parentEl = target.parentElement;
-    if (!target || !ulEl || !parentEl) return;
+    const target = ulRef.current;
+    const parent = target.parentElement;
+    if (!target || !parent) return;
 
-    let expandIds: string[];
-    const isExpanded = parentEl.dataset.expand === 'true';
+    let _expandIds: string[];
+    const isExpanded = JSON.parse(parent.dataset.expand);
     if (isExpanded) {
-      ulEl.style.height = `${ ulEl.clientHeight }px`;
+      target.style.height = `${ target.clientHeight }px`;
       requestAnimationFrame(() => {
-        ulEl.style.height = '0';
+        target.style.height = '0';
       });
 
-      expandIds = config.expandIds.filter((item) => item !== tree.id);
+      _expandIds = expandIds.filter((item) => item !== tree.id);
     } else {
-      ulEl.style.display = '';
-      const clientHeight = ulEl.clientHeight;
-      ulEl.style.height = '0';
+      target.style.display = '';
+      const height = target.clientHeight;
+      target.style.height = '0';
       requestAnimationFrame(() => {
-        ulEl.style.height = `${ clientHeight }px`;
+        target.style.height = `${ height }px`;
       });
 
-      expandIds = config.expandIds.concat(tree.id);
+      _expandIds = expandIds.concat(tree.id);
     }
 
     setTimeout(() => {
-      ulEl.style.display = isExpanded ? 'none' : '';
-      ulEl.style.height = '';
-    }, +config.duration);
+      target.style.display = isExpanded ? 'none' : '';
+      target.style.height = '';
+    }, config.duration);
 
     expandId = tree.id;
-    setConfig({ expandIds });
-    parentEl.setAttribute('data-expand', JSON.stringify(!isExpanded));
+    setExpandIds(_expandIds);
+    parent.setAttribute('data-expand', JSON.stringify(!isExpanded));
   };
 
   useDrag(null, isRoot ? null : dragRef, {
     onDragStart: (e) => {
-      const target = e.target as HTMLElement;
-      if (isExpanded) bookmarkClick(e, target.firstElementChild as HTMLElement);
+      // 如果是展开状态则收起
+      isExpanded && bookmarkClick();
 
-      srcEl = target;
+      srcEl = e.target as HTMLElement;
       requestAnimationFrame(() => {
         srcEl.style.opacity = '0.5';
       });
@@ -107,15 +107,15 @@ const BookmarkLi: FC<IProps> = ({ tree }) => {
 
       const { id, pid, index, type, expand } = target.dataset;
       const isExpandedDir = type === 'directory' && expand === 'true';
-
+      const isBottom = insert === 'bottom';
       const { bookmarks, error } = await sendToBackground({
         name: 'bookmarks',
         body: {
           action: 'move',
           data: {
             id: srcEl.dataset.id,
-            parentId: insert === 'bottom' && isExpandedDir ? id : pid,
-            index: insert === 'bottom' ? (isExpandedDir ? 0 : +index + 1) : +index,
+            parentId: isBottom && isExpandedDir ? id : pid,
+            index: isBottom ? (isExpandedDir ? 0 : +index + 1) : +index,
           },
         },
       });
@@ -178,33 +178,29 @@ const BookmarkLi: FC<IProps> = ({ tree }) => {
             (<img
               style={ { display: 'block' } }
               src={ getFavicon(tree.url) }
-              width={ config.fontSize }
-              height={ config.fontSize }
               draggable={ false }
-              alt=''
-            />) :
-            (<Folder
-              fill={ isExpanded || !tree.children.length ? 'none' : 'currentColor' }
-              width={ config.fontSize }
-              height={ config.fontSize }
-            />) }
+              alt=''{ ...iconSize } />) :
+            (<Folder fill={ isExpanded || !tree.children.length ? 'none' : 'currentColor' } { ...iconSize } />) }
         </div>
+
         { tree.title && (
           <div className='line-clamp-1' title={ tree.title }>
             { tree.title }
           </div>) }
+
         <div className='sona-bookmark__actions'>
           { !tree.url && (
             <div className='sona-bookmark-action' title='新增' onClick={ handleAdd }>
-              <Add width={ config.fontSize } height={ config.fontSize } />
+              <Add { ...iconSize } />
             </div>) }
+
           { !isRoot && (
             <>
               <div className='sona-bookmark-action' title='编辑' onClick={ handleEdit }>
-                <Edit width={ config.fontSize } height={ config.fontSize } />
+                <Edit { ...iconSize } />
               </div>
               <div className='sona-bookmark-action' title='删除' onClick={ handleDelete }>
-                <Delete width={ config.fontSize } height={ config.fontSize } />
+                <Delete { ...iconSize } />
               </div>
             </>
           ) }
@@ -213,7 +209,7 @@ const BookmarkLi: FC<IProps> = ({ tree }) => {
         { tree.id === dragId && <div className='sona-separation' /> }
       </div>
 
-      { !!tree.children?.length && (<BookmarkUl pid={ tree.id } tree={ tree.children } />) }
+      { tree.children && (<BookmarkUl ref={ ulRef } pid={ tree.id } tree={ tree.children } />) }
     </li>);
 };
 

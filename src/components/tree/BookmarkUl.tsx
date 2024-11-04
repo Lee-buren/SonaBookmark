@@ -1,26 +1,25 @@
-import type { FC } from 'react';
-import { useContext, useMemo } from 'react';
-import { ConfigContext } from '~components/ConfigProvider';
+import { forwardRef, useContext, useMemo } from 'react';
 import BookmarkLi from '~components/tree/BookmarkLi';
+import { TreeContext } from '~components/tree/TreeProvider';
 
 interface IProps {
   pid?: string;
   tree: BookmarkTreeNode[];
 }
 
-const BookmarkUl: FC<IProps> = ({ pid, tree }) => {
-  const { config } = useContext(ConfigContext);
+const BookmarkUl = forwardRef<HTMLUListElement, IProps>((({ pid, tree }, ref) => {
+  const { expandIds } = useContext(TreeContext);
 
   // display属性会在展开/收起操作时被覆盖
-  const display = useMemo(() => !pid || config.expandIds.includes(pid) ? '' : 'none', []);
+  const display = useMemo(() => !pid || expandIds.includes(pid) ? '' : 'none', []);
 
   return (
-    <ul className={ `sona-bookmark${ !pid ? '' : '__ul' }` } style={ { display } }>
-      { tree.map((tree) => (
-        <BookmarkLi key={ tree.id } tree={ tree } />
+    <ul ref={ ref } className={ `sona-bookmark${ pid ? '__ul' : '' }` } style={ { display } }>
+      { tree.map((item) => (
+        <BookmarkLi key={ item.id } tree={ item } />
       )) }
     </ul>
   );
-};
+}));
 
 export default BookmarkUl;

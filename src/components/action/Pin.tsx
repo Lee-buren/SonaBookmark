@@ -7,12 +7,12 @@ const Pin = () => {
   const { config, setConfig } = useContext(ConfigContext);
 
   const affixedToggle = () => {
-    setConfig({ isAffixed: !config.isAffixed });
+    setConfig({ isFixed: !config.isFixed });
   };
 
   return (
     <div className='sona-svg' title='固定' onClick={ affixedToggle }>
-      { config.isAffixed ? <PinIcon /> : <PinOffIcon /> }
+      { config.isFixed ? <PinIcon /> : <PinOffIcon /> }
     </div>
   );
 };

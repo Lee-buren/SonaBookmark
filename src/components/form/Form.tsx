@@ -2,12 +2,13 @@ import type { FormEventHandler, PropsWithChildren } from 'react';
 import { forwardRef } from 'react';
 
 interface IProps {
+  name?: string;
   onSubmit: FormEventHandler<HTMLFormElement>;
 }
 
-const Form = forwardRef<HTMLFormElement, PropsWithChildren<IProps>>(({ children, onSubmit }, ref) => {
+const Form = forwardRef<HTMLFormElement, PropsWithChildren<IProps>>(({ name, onSubmit, children }, ref) => {
   return (
-    <form ref={ ref } className='sona-form' onSubmit={ onSubmit }>
+    <form ref={ ref } name={ name } className='sona-form' onSubmit={ onSubmit }>
       { children }
     </form>
   );

@@ -2,12 +2,19 @@ import { forwardRef } from 'react';
 import type { UseFormRegisterReturn } from 'react-hook-form';
 
 interface IProps extends UseFormRegisterReturn {
-  defaultValue?: string;
+  defaultValue?: string | number;
+  placeholder?: string;
+  step?: number;
 }
 
-const InputNumber = forwardRef<HTMLInputElement, IProps>(({ defaultValue, ...props }, ref) => {
+const InputNumber = forwardRef<HTMLInputElement, IProps>(({ defaultValue, placeholder, step = 1, ...props }, ref) => {
   return (
-    <input ref={ ref } type='number' defaultValue={ defaultValue } { ...props } />
+    <input
+      ref={ ref }
+      type='number'
+      step={ step }
+      defaultValue={ defaultValue }
+      placeholder={ placeholder } { ...props } />
   );
 });
 

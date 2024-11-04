@@ -5,7 +5,7 @@ const Bookmarks: PlasmoMessaging.MessageHandler = async ({ body }, { send }) => 
     const { action, data: { id, parentId, title, url, index } } = body;
     try {
       if (action === 'add') {
-        await chrome.bookmarks.create({ parentId, title, url });
+        await chrome.bookmarks.create({ parentId, title, url, index });
       } else if (action === 'edit') {
         await chrome.bookmarks.update(id, { title, url });
       } else if (action === 'delete') {

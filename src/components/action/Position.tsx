@@ -8,7 +8,7 @@ const Position = () => {
   const onRight = config.position === 'right';
 
   const positionToggle = () => {
-    setConfig({ position: onRight ? 'left' : 'right', isAffixed: true });
+    setConfig({ position: onRight ? 'left' : 'right', isFixed: true });
   };
 
   return (

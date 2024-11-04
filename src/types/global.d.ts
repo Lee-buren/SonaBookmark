@@ -22,26 +22,31 @@ declare global {
   }
 
   interface Config {
-    // 侧边栏宽度
-    width: string;
-    // 书签字体大小
-    fontSize: string;
-    // 触发宽度
-    triggerWidth: string;
-    // 书签高度
-    bookmarkHeight: string;
     // 是否固定
-    isAffixed: boolean;
-    // 已展开id
-    expandIds: string[];
-    // 书签打开方式
-    target: Target;
-    // 动画过度时间
-    duration: string;
+    isFixed: boolean;
     // 显示模式
     mode: 'dark' | 'light';
     // 停靠位置
     position: 'left' | 'right';
+
+    // 触发宽度
+    triggerWidth: number;
+    //触发高度 上边距
+    triggerTop: number;
+    //触发高度 下边距
+    triggerBottom: number;
+    // 触发延迟
+    triggerDelay: number;
+    // 侧边栏宽度
+    width: number;
+    // 书签高度
+    bookmarkHeight: number;
+    // 书签字体大小
+    fontSize: number;
+    // 动画过度时间
+    duration: number;
+    // 书签打开方式
+    target: Target;
   }
 
   interface HandleForm {

@@ -1,9 +1,10 @@
-import { forwardRef } from 'react';
-import type { UseFormRegisterReturn } from 'react-hook-form';
+import { type ChangeEventHandler, forwardRef } from 'react';
+import type { ChangeHandler, UseFormRegisterReturn } from 'react-hook-form';
 
-interface IProps extends UseFormRegisterReturn {
+interface IProps extends Omit<UseFormRegisterReturn, 'onChange'> {
   defaultValue?: string;
   options: { label: string, value: string }[];
+  onChange: ChangeHandler | ChangeEventHandler<HTMLInputElement>;
 }
 
 const Radio = forwardRef<HTMLInputElement, IProps>(({ defaultValue, options, ...props }, ref) => {

@@ -1,5 +1,6 @@
 import { useEventListener } from 'ahooks';
-import { createContext, type FC, type PropsWithChildren, useRef, useState } from 'react';
+import type { FC, PropsWithChildren } from 'react';
+import { createContext, useState } from 'react';
 
 type ModalType = '' | 'Setting' | 'Handle'
 
@@ -13,15 +14,12 @@ export const ModalContext = createContext<IModalContext>(null);
 const ModalProvider: FC<PropsWithChildren> = ({ children }) => {
   const [ modalName, setModalName ] = useState<ModalType>('');
 
-  const timer = useRef<number>(null);
   const setModal = (modal: ModalType) => {
     if (modal && modal === modalName) {
-      clearTimeout(timer.current);
       setModalName('');
-      timer.current = setTimeout(() => {
+      setTimeout(() => {
         setModalName(modal);
-        timer.current = null;
-      }, 100);
+      }, 158);
     } else {
       setModalName(modal);
     }

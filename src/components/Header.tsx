@@ -4,7 +4,6 @@ import Pin from '~components/action/Pin';
 import Position from '~components/action/Position';
 import Setting from '~components/action/Setting';
 import { ConfigContext } from '~components/ConfigProvider';
-import SettingModal from '~components/modal/SettingModal';
 
 const Header = () => {
   const { config } = useContext(ConfigContext);
@@ -18,8 +17,6 @@ const Header = () => {
         </div>
         <Setting />
       </div>
-
-      <SettingModal />
     </>
   );
 };
